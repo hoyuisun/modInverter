@@ -14,18 +14,14 @@ import org.apache.log4j.Logger;
 public class ModbusTCP {
 	static final Logger LOG = Logger.getLogger(ModbusTCP.class);
 	
-	private String ip = "127.0.0.1";
+	private Socket sk;
 	
 	public ModbusTCP(){
 	}
 	
-	public ModbusTCP(String ip){
-		this.ip = ip;
-	}
-	
-	public void Polling(int address, int reference, int register, int port, int count, long timeout) throws Exception {
-		Socket sk = new Socket(ip, port);
-		sk.setSoTimeout((int)timeout);
+	public void Polling(ModbusProtocol mp) throws Exception {
+		sk = new Socket(mp.getSerialPort(), mp.getPort());
+		sk.setSoTimeout((int)mp.getTimeout());
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();	
 		DataOutputStream dos = new DataOutputStream(baos);
 		OutputStream os = sk.getOutputStream();
@@ -41,20 +37,12 @@ public class ModbusTCP {
 			dos.writeShort(loop);
 			dos.writeShort(0);
 			dos.writeShort(6);
-			dos.write(address);
-			dos.write(register);
-			dos.writeShort(reference);
-			dos.writeShort(count);
+			dos.write(mp.getAddress());
+			dos.write(mp.getRegister());
+			dos.writeShort(mp.getReference());
+			dos.writeShort(mp.getCount());
 			byte[] query = baos.toByteArray();
-			
-			/*
-			 * String p = "";
-			 * for (byte d : query) {
-			 * p += String.format("%02d ", d);
-			 * }
-			 * LOG.info(p);
-			 */
-			
+				
 			os.write(query);
 			os.flush();
 			
@@ -74,7 +62,7 @@ public class ModbusTCP {
 			int c = dis.read() / 2;
 			
 			for(int i = 1; i <= c; i++)
-				System.out.println("[" + (reference + i) + "]: " + dis.readShort());
+				System.out.println("[" + (mp.getReference() + i) + "]: " + dis.readShort());
 			loop++;
 			Thread.sleep(1000);
 		}

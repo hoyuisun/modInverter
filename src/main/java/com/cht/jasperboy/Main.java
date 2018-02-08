@@ -4,31 +4,22 @@ import org.apache.log4j.Logger;
 
 import com.cht.core.Kaco;
 import com.cht.core.Kstar;
+import com.cht.core.ModbusProtocol;
 import com.cht.core.ModbusRTU;
 import com.cht.core.ModbusTCP;
 import com.cht.core.Motech;
 import com.cht.core.goodwe.Goodwe;
-import com.cht.io.SerialPort;
 
 public class Main {
 	static final Logger LOG = Logger.getLogger(Main.class);
+	static boolean isStupid = false;
 	
-	private String serailPort = "/dev/ttyS1";
+	private ModbusProtocol mp = new ModbusProtocol();
 	private String method = "";
-	private String path = "";
-	private static boolean isStupid = false;
-	private int address = 1;
-	private int reference = 100;
-	private int register = 4;
-	private int port = 502;
-	private int count = 1;
-	private int baudrate = 9600;
-	private int databits = 8;
-	private int stopbits = 1;
-	private int parity = SerialPort.PARITY_NONE;
-	private int flowcontrol = SerialPort.FLOWCONTROL_NONE;
-	private long timeout = 3000L;
-	private int Motech_start = 1;
+	
+	private String path = "";		//Goodwe
+	
+	private int Motech_start = 1;	
 	private int Motech_end = 250;
 	
 	public Main(){
@@ -42,25 +33,25 @@ public class Main {
 				if(args[i].equals("-m")) 
 					method = args[i+1];
 				else if(args[i].equals("-b")) 
-					baudrate = Integer.valueOf(args[i+1]);
+					mp.setBaudrate(Integer.valueOf(args[i+1]));
 				else if(args[i].equals("-d")) 
-					databits = Integer.valueOf(args[i+1]);
+					mp.setDatabits(Integer.valueOf(args[i+1]));
 				else if(args[i].equals("-s")) 
-					stopbits = Integer.valueOf(args[i+1]);
-				else if(args[i].equals("--timeout")) 
-					timeout = Integer.valueOf(args[i+1]);
+					mp.setStopbits(Integer.valueOf(args[i+1]));
 				else if(args[i].equals("-i")) 
-					serailPort = args[i+1];
-				else if(args[i].equals("-t")) 
-					register = Integer.valueOf(args[i+1]);
-				else if (args[i].equals("-r"))
-					reference = Integer.valueOf(args[i+1]) - 1;	//Base 0
-				else if (args[i].equals("-p"))
-					port = Integer.valueOf(args[i+1]);
+					mp.setSerialPort(args[i+1]);
 				else if(args[i].equals("-a")) 
-					address = Integer.valueOf(args[i+1]);
+					mp.setAddress(Integer.valueOf(args[i+1]));
+				else if (args[i].equals("-r"))
+					mp.setReference(Integer.valueOf(args[i+1]) - 1);	//Base 0
 				else if(args[i].equals("-c")) 
-					count = Integer.valueOf(args[i+1]);
+					mp.setCount(Integer.valueOf(args[i+1]));
+				else if(args[i].equals("-t")) 
+					mp.setRegister(Integer.valueOf(args[i+1]));
+				else if (args[i].equals("-p"))
+					mp.setPort(Integer.valueOf(args[i+1]));
+				else if(args[i].equals("--timeout")) 
+					mp.setTimeout(Integer.valueOf(args[i+1]));
 				else if(args[i].equals("-f")) 
 					path = args[i+1];
 				else if(args[i].equals("--ms"))
@@ -73,8 +64,7 @@ public class Main {
 					isStupid = true;
 			}
 		}catch(Exception e){
-			//LOG.error(e.toString());
-			LOG.info("I think you need help TAT, so find Jasper!!");
+			LOG.info("I think you need help TAT, so find Jasper!!\nOr maybe type -h ask for help");
 		}
 	}
 	
@@ -98,21 +88,21 @@ public class Main {
 	}
 	
 	public void pollModbusTCP(){
+		HoldToInput(mp.getRegister());
 		try {
-			ModbusTCP modbus = new ModbusTCP(serailPort);
-			modbus.Polling(address, reference, (register == 3) ? 4 : 3, port, count, timeout);
+			ModbusTCP modbus = new ModbusTCP();
+			modbus.Polling(mp);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
 	public void pollModbusRTU(){
+		HoldToInput(mp.getRegister());
 		try {
-			ModbusRTU modbus = new ModbusRTU(serailPort, baudrate, databits, stopbits, parity, flowcontrol);
-			modbus.Polling(address, reference, (register == 3) ? 4 : 3, count, timeout);
+			ModbusRTU modbus = new ModbusRTU();
+			modbus.Polling(mp);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -120,19 +110,17 @@ public class Main {
 	public void pollGoodwe(){
 		try {
 			Goodwe goodwe = new Goodwe(path);
-			goodwe.Polling(serailPort, baudrate, databits, stopbits, parity, flowcontrol, timeout);
+			goodwe.Polling(mp);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
 	public void pollKaco(){
-		Kaco kaco = new Kaco(address);
+		Kaco kaco = new Kaco(mp.getAddress());
 		try {
-			kaco.Polling(serailPort, baudrate, databits, stopbits, parity, flowcontrol, timeout);
+			kaco.Polling(mp);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -140,21 +128,26 @@ public class Main {
 	public void pollMotech(){
 		Motech motech = new Motech(Motech_start, Motech_end);
 		try {
-			motech.Polling(serailPort, baudrate, databits, stopbits, parity, flowcontrol, timeout);
+			motech.Polling(mp);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
 	public void pollKstar(){
-		Kstar kstar = new Kstar(address);
+		Kstar kstar = new Kstar(mp.getAddress());
 		try {
-			kstar.Polling(serailPort, baudrate, databits, stopbits, parity, flowcontrol, timeout);
+			kstar.Polling(mp);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public void HoldToInput(int register){
+		if(register == 3)
+			mp.setRegister(4);
+		else if(register == 4)
+			mp.setRegister(3);
 	}
 	
 	public void doHelp(){
@@ -162,7 +155,7 @@ public class Main {
 		System.out.println("> java -jar modinverter.jar -h");
 		System.out.println("\nUsage: modinverter -m method [options]");
 		System.out.println("\nGeneral options:\n");
-		System.out.println("-m motech|goodwe|kaco|kstar\tCHT inverter support");
+		System.out.println("-m rtu|tcp|motech|goodwe|kaco|kstar\tCHT inverter support");
 		System.out.println("-b #\t\tBaudrate (e.g. 9600, 19200, ...) (9600 is default)");
 		System.out.println("-d #\t\tDatabits (7 or 8 for ASCII protocol, 8 for RTU)");
 		System.out.println("-s #\t\tStopbits (1 or 2, 1 is default)");
@@ -189,9 +182,7 @@ public class Main {
 	
 	public static void main(String [] args) {
 		final Main main = new Main(args);
-		if (isStupid)
-			main.doHelp();
-		else 
+		if (!isStupid)
 			main.doPoll();	
 	}
 }

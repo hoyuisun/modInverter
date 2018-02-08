@@ -34,9 +34,9 @@ public class Motech {
 		this.end = end;
 	}
 	
-	public void Polling(String port, int baudrate, int databits, int stopbits, int parity, int flowcontrol, long timeout) throws Exception {
-		SerialPort sp = new SerialPort(port, baudrate, databits, stopbits, parity, flowcontrol);
-		sp.setTimeout(timeout);
+	public void Polling(ModbusProtocol mp) throws Exception {
+		SerialPort sp = new SerialPort(mp.getSerialPort(), mp.getBaudrate(), mp.getDatabits(), mp.getStopbits(), mp.getParity(), mp.getFlowcontrol());
+		sp.setTimeout(mp.getTimeout());
 		
 		os = new BufferedOutputStream(sp.getOutputStream());
 		is = new DataInputStream(new BufferedInputStream(sp.getInputStream()));

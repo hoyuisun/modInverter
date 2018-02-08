@@ -1,0 +1,14 @@
+/build/
+/bin/
+/.classpath
+/.project
+/.gradle
+/.setting
+/bin
+/build
+.DS_Store
+.gradle
+.setting
+settings.gradle
+gradlew
+gradlew.bat

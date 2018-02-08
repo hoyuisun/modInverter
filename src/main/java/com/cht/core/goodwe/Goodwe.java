@@ -6,6 +6,8 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
+import com.cht.core.ModbusProtocol;
+
 public class Goodwe {
 	static final Logger LOG = Logger.getLogger(GoodweSolarClientImpl.class);
 	
@@ -29,7 +31,7 @@ public class Goodwe {
 		}
 	}
 	
-	public void Polling(String port, int baudrate, int databits, int stopbits, int parity, int flowcontrol, long timeout) throws Exception {
+	public void Polling(ModbusProtocol mp) throws Exception {
 		byte sn [][] = new byte[10][];
 		for(int i = 0; i < count; i++)
 			sn[i] = GoodweSN[i].getBytes();
@@ -37,10 +39,10 @@ public class Goodwe {
 		//9025KDTU17AR0672
 		//byte[] sn1 = {0x39, 0x30, 0x32, 0x35, 0x4b, 0x44, 0x54, 0x55, 0x31, 0x37, 0x41, 0x52, 0x30, 0x36, 0x37, 0x32 }; 
 
-		GoodweSolarClientImpl client = new GoodweSolarClientImpl(port, baudrate, databits, stopbits, parity,
-				flowcontrol, timeout);
+		GoodweSolarClientImpl client = new GoodweSolarClientImpl(mp.getSerialPort(), mp.getBaudrate(), mp.getDatabits(), mp.getStopbits(), mp.getParity(),
+				mp.getFlowcontrol(), mp.getTimeout());
 
-		client.setTimeout(timeout);
+		client.setTimeout(mp.getTimeout());
 		
 		//Register first!!
 		for(int i = 0; i < count; i++){
