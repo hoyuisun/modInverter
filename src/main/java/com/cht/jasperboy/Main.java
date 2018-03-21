@@ -13,6 +13,7 @@ import com.cht.core.goodwe.Goodwe;
 public class Main {
 	static final Logger LOG = Logger.getLogger(Main.class);
 	static boolean isStupid = false;
+	static boolean isError = false;
 	
 	private ModbusProtocol mp = new ModbusProtocol();
 	private String method = "";
@@ -26,8 +27,10 @@ public class Main {
 	}
 	
 	public Main(String args []){
-		if (args.length == 0 | (args.length)%2 == 1) 
+		if (args.length == 0 | (args.length)%2 == 1){
 			isStupid = true;
+			return ;
+		}
 		try{
 			for (int i = 0; i < args.length; i += 2){
 				if(args[i].equals("-m")) 
@@ -64,7 +67,8 @@ public class Main {
 					isStupid = true;
 			}
 		}catch(Exception e){
-			LOG.info("I think you need help TAT, so find Jasper!!\nOr maybe type -h ask for help");
+			LOG.info("I think you need help TAT, so find Jasper!! Or maybe type -h ask for help");
+			isError = true;
 		}
 	}
 	
@@ -152,10 +156,10 @@ public class Main {
 	
 	public void doHelp(){
 		System.out.println("[Usage]");
-		System.out.println("> java -jar modinverter.jar -h");
+		System.out.println("> java -jar modInverter.jar -h");
 		System.out.println("\nUsage: modinverter -m method [options]");
 		System.out.println("\nGeneral options:\n");
-		System.out.println("-m rtu|tcp|motech|goodwe|kaco|kstar\tCHT inverter support");
+		System.out.println("-m rtu|tcp|motech|goodwe|kaco|kstar\tCHT supported inverter");
 		System.out.println("-b #\t\tBaudrate (e.g. 9600, 19200, ...) (9600 is default)");
 		System.out.println("-d #\t\tDatabits (7 or 8 for ASCII protocol, 8 for RTU)");
 		System.out.println("-s #\t\tStopbits (1 or 2, 1 is default)");
@@ -182,7 +186,9 @@ public class Main {
 	
 	public static void main(String [] args) {
 		final Main main = new Main(args);
-		if (!isStupid)
+		if (!isStupid && !isError)
 			main.doPoll();	
+		else if(isStupid)
+			main.doHelp();
 	}
 }

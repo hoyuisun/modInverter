@@ -181,6 +181,13 @@ public class GoodweSolarClientImpl implements GoodweSolarClient {
 			
 			byte[] pdu = baos.toByteArray();
 
+			System.out.print("Goodwe HexCode: ");
+			for (byte b:pdu){ 
+				
+				System.out.print(String.format("%02X ", b));
+			}
+			System.out.println(" ");
+			
 			write(pdu);
 
 			reading();
